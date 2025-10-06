@@ -64,16 +64,16 @@ python3 tg-send-msg-exam-bot.py
 在 pset 目录中, 各个 .py 文件定义了 问题-答案 的生成方法   
 你可以删除你不需要的 问题-答案, 也可以很方便地自定义你自己的 问题-答案.
 
-### youtube.py
+## youtube.py
 如果是简单文本的 问题-答案, 可以参考 [youtube.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/youtube.py) 文件.  
 <img width="800" height="166" alt="image" src="https://github.com/user-attachments/assets/4ee17d64-e7e2-40d9-bd2b-ced7a4284946" />
 
-### blog.py 
+## blog.py 
 使用 [blog.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/blog.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
 blog.py 也是一个例子, 用于在某个html页面上获取指定的元素作为答案.  
 更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
 
-### rss.py 
+## rss.py 
 使用 [rss.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/rss.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
 rss.py 也是一个例子, 用于在某个xml文件中获取指定元素作为答案.  
 更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
