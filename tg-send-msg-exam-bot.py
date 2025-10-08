@@ -69,47 +69,52 @@ VALID_USERS_FILE = Path(__file__).parent / 'valid.yaml'
 # }
 pending_users = {}
 
+# 验证用户列表缓存
+valid_users_cache = {}
 
 def load_valid_users():
     """从 YAML 文件加载已验证用户"""
+    global valid_users_cache
+    
     if not VALID_USERS_FILE.exists():
-        return {}
+        valid_users_cache = {}
+        return valid_users_cache
     
     try:
         with open(VALID_USERS_FILE, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f) or {}
-            return data
+            valid_users_cache  = yaml.safe_load(f) or {}
+        logger.info(f"已加载 {len(valid_users_cache)} 个已验证用户")
     except Exception as e:
         logger.error(f"加载 valid.yaml 失败: {e}")
-        return {}
+        valid_users_cache = {}
+    
+    return valid_users_cache
 
 
 def save_valid_users(valid_users):
     """保存已验证用户到 YAML 文件"""
     try:
         with open(VALID_USERS_FILE, 'w', encoding='utf-8') as f:
-            yaml.dump(valid_users, f, allow_unicode=True, sort_keys=False)
-        logger.info(f"已保存 {len(valid_users)} 个已验证用户到 valid.yaml")
+            yaml.dump(valid_users_cache, f, allow_unicode=True, sort_keys=False)
+        logger.info(f"已保存 {len(valid_users_cache)} 个已验证用户到 valid.yaml")
     except Exception as e:
         logger.error(f"保存 valid.yaml 失败: {e}")
 
 
 def add_valid_user(user_id, username, full_name):
     """添加已验证用户"""
-    valid_users = load_valid_users()
-    valid_users[user_id] = {
+    valid_users_cache[user_id] = {
         'username': username,
         'full_name': full_name,
         'verified_at': datetime.now().isoformat()
     }
-    save_valid_users(valid_users)
+    save_valid_users()
     logger.info(f"用户 {user_id} ({full_name}) 已添加到已验证列表")
 
 
 def is_valid_user(user_id):
     """检查用户是否已验证"""
-    valid_users = load_valid_users()
-    return user_id in valid_users
+    return user_id in valid_users_cache
 
 
 def get_random_module():
@@ -348,6 +353,9 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 def main():
     """启动机器人"""
+    
+    # 加载验证用户列表缓存
+    load_valid_users()
     
     # 创建应用
     application = Application.builder().token(BOT_TOKEN).build()
