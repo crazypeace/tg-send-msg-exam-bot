@@ -244,7 +244,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "👋 你好！我是群组验证机器人。\n\n"
             "🔹 当你在群组中发送消息时，我会检查你是否已验证\n"
             "🔹 未验证用户会被暂时禁言，并需要完成人机验证\n"
-			"🔹 未验证用户需要向我发送 /start 并回答验证问题\n"
+            "🔹 未验证用户需要向我发送 /start 并回答验证问题\n"
             "🔹 验证通过后，我会自动解除禁言"
         )
 
