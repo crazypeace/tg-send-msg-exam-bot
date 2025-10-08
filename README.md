@@ -32,7 +32,7 @@ apt install -y python3-pip
 
 安装python依赖
 ```
-pip3 install "python-telegram-bot[job-queue]" requests BeautifulSoup4 --break-system-packages
+pip3 install "python-telegram-bot[job-queue]" pyyaml requests BeautifulSoup4 --break-system-packages
 ```
 
 下载本项目代码
