@@ -268,7 +268,7 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_answer = message_text.strip()
     correct_answer = user_info['answer']
     
-    if user_answer == correct_answer:
+    if correct_answer.lower() in user_answer.lower():
         # 答案正确
         chat_id = user_info['chat_id']
         
