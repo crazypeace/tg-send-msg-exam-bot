@@ -92,7 +92,7 @@ def load_valid_users():
     return valid_users_cache
 
 
-def save_valid_users(valid_users):
+def save_valid_users():
     """保存已验证用户到 YAML 文件"""
     try:
         with open(VALID_USERS_FILE, 'w', encoding='utf-8') as f:
