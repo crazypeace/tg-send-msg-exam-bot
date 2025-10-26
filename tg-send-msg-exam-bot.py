@@ -214,7 +214,8 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
                 f'🔒 已暂时禁言\n'
                 f'💬 请私聊机器人 [@{context.bot.username}](https://t.me/{context.bot.username}) 并发送 /start 完成验证'
             ),
-            parse_mode='Markdown'
+            parse_mode='Markdown',
+            disable_web_page_preview=True
         )
         
         # 120秒后删除提醒消息
@@ -305,6 +306,12 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
                           message_id=msg_info['message_id']
                       )
                       restored_count += 1
+                      
+                      # 转发成功后删除仓库中的消息
+                      await context.bot.delete_message(
+                          chat_id=STORAGE_CHANNEL_ID,
+                          message_id=msg_info['message_id']
+                      )
                   except Exception as e:
                       logger.error(f"转发消息 {msg_info['message_id']} 失败: {e}")
               
@@ -330,7 +337,8 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
                     f"✅ {user.mention_markdown()} 已通过验证\n"
                     f"⏱ 用时 {time_taken}秒"
                 ),
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                disable_web_page_preview=True
             )
             
             # 10秒后删除通知消息
