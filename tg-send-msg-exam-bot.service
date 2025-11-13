@@ -1,0 +1,16 @@
+[Unit]
+Description=tg-send-msg-exam-bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/tg-send-msg-exam-bot
+ExecStart=python3 /root/tg-send-msg-exam-bot/tg-send-msg-exam-bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
