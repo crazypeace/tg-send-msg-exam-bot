@@ -5,7 +5,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
+# 注意修改为你自己的目录
 WorkingDirectory=/root/tg-send-msg-exam-bot
+# 注意修改为你自己的目录
 ExecStart=python3 /root/tg-send-msg-exam-bot/tg-send-msg-exam-bot.py
 Restart=always
 RestartSec=10
