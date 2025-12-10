@@ -205,6 +205,29 @@ async def process_valid_user(context, user_id):
 
 # 命令：/add_valid_user <user_id>
 async def add_valid_user_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    message = update.message
+    from_user = update.effective_user
+
+    # 自动删除 "/add_valid_user XXXX" 这条命令消息
+    context.job_queue.run_once(
+        delete_message,
+        10,
+        data={'chat_id': chat.id, 'message_id': message.message_id}
+    )
+    
+    # 检查是否是管理员（可根据需要严格验证）
+    member = await context.bot.get_chat_member(chat.id, from_user.id)
+    if member.status not in ("administrator", "creator"):
+        msg = await message.reply_text("❌ 只有管理员可以使用此命令。")
+        # 自动删除消息
+        context.job_queue.run_once(
+            delete_message,
+            10,
+            data={'chat_id': chat.id, 'message_id': msg.message_id}
+        )
+        return
+
     if not context.args:
         return await update.message.reply_text("用法：/add_valid_user <user_id>")
 
