@@ -144,6 +144,77 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"删除消息失败: {e}")
 
 
+#  处理验证成功流程的函数
+async def process_valid_user(context, user_id):
+    if user_id not in pending_users:
+        logger.info("该用户不在待验证列表中")
+        return
+
+    user_info = pending_users[user_id]
+    chat_id = user_info['chat_id']
+
+    try:
+        # 1. 解除禁言
+        await context.bot.restrict_chat_member(
+            chat_id=chat_id,
+            user_id=user_id,
+            permissions=default_permissions
+        )
+        logger.info(f"已解除用户 {user_id} 的禁言")
+
+        # 2. 添加到已验证用户列表
+        user_obj = await context.bot.get_chat(user_id)
+        add_valid_user(
+            user_id=user_id,
+            username=user_obj.username or "无用户名",
+            full_name=user_obj.full_name
+        )
+
+        # 3. 从仓库频道转发消息回群组
+        restored_count = 0
+        if STORAGE_CHANNEL_ID:
+            stored_messages = user_info.get('stored_messages', [])
+              
+            for msg_info in stored_messages:
+              try:
+                  await context.bot.forward_message(
+                      chat_id=msg_info['original_chat_id'],
+                      from_chat_id=STORAGE_CHANNEL_ID,
+                      message_id=msg_info['message_id']
+                  )
+                  restored_count += 1
+                      
+                  # 转发成功后删除仓库中的消息
+                  await context.bot.delete_message(
+                      chat_id=STORAGE_CHANNEL_ID,
+                      message_id=msg_info['message_id']
+                  )
+              except Exception as e:
+                  logger.error(f"转发消息 {msg_info['message_id']} 失败: {e}")
+              
+            logger.info(f"已将 {restored_count} 条消息转发回群组")
+
+        # 4. 删除待验证记录
+        del pending_users[user_id]
+
+        return
+
+    except Exception as e:
+        logger.info(f"process_valid_user 处理失败：{e}")
+        return
+
+# 命令：/add_valid_user <user_id>
+async def add_valid_user_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        return await update.message.reply_text("用法：/add_valid_user <user_id>")
+
+    try:
+        user_id = int(context.args[0])
+    except ValueError:
+        return await update.message.reply_text("❌ user_id 必须是数字")
+
+    await process_valid_user(context, user_id)
+
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理群组消息，检查发送者是否已验证"""
     user = update.effective_user
@@ -230,6 +301,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         logger.error(f"处理未验证用户消息时出错: {e}")
 
 
+# 命令: /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理 /start 命令"""
     user = update.effective_user
@@ -257,6 +329,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+# 私聊验证答案
 async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理用户的验证答案"""
     user = update.effective_user
@@ -276,50 +349,9 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_answer = re.sub(r'\s+', '', user_answer.lower())
     if correct_answer in user_answer:
         # 答案正确
-        chat_id = user_info['chat_id']
-        
         try:
-            # 1. 解除禁言
-            await context.bot.restrict_chat_member(
-                chat_id=chat_id,
-                user_id=user_id,
-                permissions=default_permissions
-            )
-            logger.info(f"已解除用户 {user_id} 的禁言")
-            
-            # 2. 添加到已验证用户列表
-            add_valid_user(
-                user_id=user_id,
-                username=user.username or "无用户名",
-                full_name=user.full_name
-            )
-            
-            # 3. 从仓库频道转发消息回群组
-            restored_count = 0
-            if STORAGE_CHANNEL_ID:
-              stored_messages = user_info.get('stored_messages', [])
-              
-              for msg_info in stored_messages:
-                  try:
-                      await context.bot.forward_message(
-                          chat_id=msg_info['original_chat_id'],
-                          from_chat_id=STORAGE_CHANNEL_ID,
-                          message_id=msg_info['message_id']
-                      )
-                      restored_count += 1
-                      
-                      # 转发成功后删除仓库中的消息
-                      await context.bot.delete_message(
-                          chat_id=STORAGE_CHANNEL_ID,
-                          message_id=msg_info['message_id']
-                      )
-                  except Exception as e:
-                      logger.error(f"转发消息 {msg_info['message_id']} 失败: {e}")
-              
-              logger.info(f"已将 {restored_count} 条消息转发回群组")
-            
-            # 4. 删除待验证记录
-            del pending_users[user_id]
+            #1 #2 #3 #4 步骤在这个函数里
+            await process_valid_user(context, user_id)
             
             # 5. 计算验证时间
             time_taken = (datetime.now() - user_info['join_time']).seconds
@@ -384,8 +416,9 @@ def main():
     # 创建应用
     application = Application.builder().token(BOT_TOKEN).build()
     
-    # 添加处理器
+    # 注册命令
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("add_valid_user", add_valid_user_cmd))
     
     # 处理群组消息（检查验证状态）
     application.add_handler(
