@@ -373,6 +373,8 @@ async def handle_verification(update: Update, context: ContextTypes.DEFAULT_TYPE
     if correct_answer in user_answer:
         # 答案正确
         try:
+            chat_id = user_info['chat_id']  # 从 user_info 获取群组ID
+            
             #1 #2 #3 #4 步骤在这个函数里
             await process_valid_user(context, user_id)
             
